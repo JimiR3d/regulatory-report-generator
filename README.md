@@ -1,76 +1,108 @@
-# Regulatory Report Generator
+# 📋 Regulatory Report Generator
 
-![Status](https://img.shields.io/badge/Status-In%20Progress-yellow)
+CLI tool that validates Nigerian bank financial data against CBN (Central Bank of Nigeria) regulatory rules and generates compliant Capital Adequacy Returns in PDF and HTML formats.
 
-A Python CLI tool that takes structured CSV financial data, validates it, and generates formatted PDF reports matching the style of CBN (Central Bank of Nigeria) monthly prudential returns. Also outputs a summary JSON for programmatic use.
+---
 
-Feed it raw bank metrics. Get back a publication-ready regulatory report.
+## Architecture
 
-## Who this is for
-
-Nigerian bank compliance officers, regulatory reporting teams, fintech data engineers, and anyone who currently builds CBN prudential returns manually in Excel.
-
-## How it works
-
-```bash
-python generate_report.py \
-  --input data/bank_metrics.csv \
-  --output reports/june_2026.pdf \
-  --bank "First Continental Bank"
+```
+data/sample_return.json   →  cli.py validate   →  Validation report
+                              cli.py generate   →  validator.py → report_engine.py
+                                                         ↓
+                                                  templates/car_report.html (Jinja2)
+                                                         ↓
+                                                  output/car_report.pdf
+                                                  output/car_report.html
 ```
 
-1. **Reads** a structured CSV of financial metrics
-2. **Validates** the data — checks for missing fields, out-of-range values, and formatting issues
-3. **Renders** a formatted PDF report using HTML templates styled to match CBN monthly prudential returns
-4. **Exports** a summary JSON alongside the PDF for programmatic downstream use
+## Tech Stack
 
-## Tech stack
+| Component | Tool | Purpose |
+|-----------|------|---------|
+| CLI | argparse | `validate` and `generate` commands |
+| Validation | Custom Python | 6 rule categories, CBN threshold checks |
+| Templates | Jinja2 | HTML report rendering |
+| PDF | ReportLab | Styled tables, compliance badges |
+| CI | GitHub Actions | Flake8 linting |
 
-- **Python** — core logic
-- **Pandas** — data processing and validation
-- **Click** — CLI framework
-- **Jinja2** — HTML report templating
-- **WeasyPrint** — HTML → PDF rendering
+## Key Features
 
-## How to run locally
+### Data Validator (`validator.py`)
+- 9 required field checks
+- Date format validation
+- Numeric range and sign checks
+- RWA component sum verification (1% tolerance)
+- Capital hierarchy validation (CET1 ≤ Tier 1 ≤ Total)
+- CBN ratio threshold checks (D-SIB vs non-D-SIB banks)
+- Error severity levels (ERROR, WARNING, INFO)
+
+### Report Engine (`report_engine.py`)
+- **PDF output:** Professionally styled with Navy/Teal color scheme, 3-section layout (Capital Structure, RWA Breakdown, Compliance Status)
+- **HTML output:** Jinja2-templated, Inter font, responsive design
+- Compliance status badges (✓ Compliant / ✗ BREACH)
+- Naira-denominated formatting (₦'000)
+
+### CLI (`cli.py`)
+```bash
+# Validate data only
+python cli.py validate --input data/sample_return.json
+
+# Generate PDF report
+python cli.py generate --input data/sample_return.json --format pdf
+
+# Generate HTML report for D-SIB bank
+python cli.py generate -i data/sample_return.json -f html --bank-type d_sib
+```
+
+## Quick Start
 
 ```bash
-# Clone the repo
-git clone https://github.com/JimiR3d/regulatory-report-generator.git
-cd regulatory-report-generator
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Generate a sample report
-python generate_report.py --input data/sample_input.csv --output reports/sample.pdf --bank "First Continental Bank"
+# Validate sample data
+python cli.py validate --input data/sample_return.json
+
+# Generate PDF report
+python cli.py generate --input data/sample_return.json --format pdf
+# Opens: output/car_report.pdf
 ```
 
-## Sample output
+## Input Format
 
-Check [`examples/sample_output.pdf`](examples/sample_output.pdf) to see what the generated report looks like — no setup required.
-
-## Project structure
-
-```
-regulatory-report-generator/
-├── generate_report.py      # CLI entry point
-├── validator.py            # Input data validation
-├── renderer.py             # Jinja2 → HTML → PDF logic
-├── templates/
-│   └── cbn_report.html     # Report HTML template
-├── data/
-│   └── sample_input.csv    # Sample input data
-├── examples/
-│   └── sample_output.pdf   # Pre-generated example output
-├── requirements.txt
-└── README.md
+```json
+{
+    "bank_name": "First Continental Bank Nigeria Plc",
+    "report_date": "2025-03-31",
+    "cet1_capital": 485000000,
+    "additional_tier1": 35000000,
+    "tier2_capital": 120000000,
+    "total_rwa": 3200000000,
+    "credit_rwa": 2560000000,
+    "market_rwa": 320000000,
+    "operational_rwa": 320000000
+}
 ```
 
-## Context
+## CBN Thresholds
 
-Built by [Jimi Aboderin](https://github.com/JimiR3d) — a data analyst who previously automated Basel III compliance reporting pipelines for a Nigerian bank at Qucoon. This is a clean-room rebuild demonstrating the same competency with simulated data.
+| Ratio | Non-D-SIB | D-SIB |
+|-------|-----------|-------|
+| CET1 | ≥ 5.0% | ≥ 7.0% |
+| Tier 1 | ≥ 6.5% | ≥ 8.5% |
+| Total CAR | ≥ 10.0% | ≥ 15.0% |
 
-## License
+## Project Context
 
-MIT
+This project demonstrates:
+- **RegTech development** — Automated regulatory compliance tooling
+- **Data validation** — Multi-rule validation engine with severity levels
+- **Report generation** — Jinja2 templating + PDF generation
+- **CLI design** — Composable subcommand architecture
+
+Built as part of my data analyst portfolio. All data is simulated; no proprietary information.
+
+## Author
+
+**Jimi Aboderin**  
+[LinkedIn](https://www.linkedin.com/in/oluwafolajinmi-aboderin-695848249/) · [GitHub](https://github.com/JimiR3d) · folajinmi13@gmail.com
