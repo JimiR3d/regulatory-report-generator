@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Capital Adequacy Return – {{ bank_name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #F8F9FA;
+            color: #2C3E50;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #0F2C4D, #1A3A5C);
+            color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: 700; }
+        .header p { color: #BDC3C7; margin-top: 0.3rem; font-size: 0.9rem; }
+        .badge {
+            display: inline-block;
+            background: rgba(26, 188, 156, 0.2);
+            color: #1ABC9C;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        .section { margin-bottom: 2rem; }
+        .section h2 {
+            font-size: 1.1rem;
+            color: #0F2C4D;
+            border-bottom: 2px solid #1ABC9C;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th {
+            background: #0F2C4D;
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid #DEE2E6;
+        }
+        tr:last-child td { font-weight: 600; background: #F1F3F5; }
+        .align-right { text-align: right; }
+        .compliant { color: #27AE60; font-weight: 600; }
+        .breach { color: #E74C3C; font-weight: 600; }
+        .footer {
+            text-align: center;
+            color: #95A5A6;
+            font-size: 0.75rem;
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #DEE2E6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CAPITAL ADEQUACY RETURN</h1>
+        <p>{{ bank_name }}</p>
+        <p>Report Date: {{ report_date }} &nbsp;|&nbsp; Generated: {{ generated_at }}</p>
+        <span class="badge">CBN Form CAR 001</span>
+    </div>
+
+    <div class="section">
+        <h2>A. Capital Structure</h2>
+        <table>
+            <tr>
+                <th>Component</th>
+                <th class="align-right">Amount (₦'000)</th>
+                <th class="align-right">% of RWA</th>
+            </tr>
+            <tr>
+                <td>CET1 Capital</td>
+                <td class="align-right">{{ "{:,.0f}".format(cet1_capital) }}</td>
+                <td class="align-right">{{ cet1_ratio }}%</td>
+            </tr>
+            <tr>
+                <td>Additional Tier 1</td>
+                <td class="align-right">{{ "{:,.0f}".format(additional_tier1) }}</td>
+                <td class="align-right">—</td>
+            </tr>
+            <tr>
+                <td>Total Tier 1 Capital</td>
+                <td class="align-right">{{ "{:,.0f}".format(tier1_capital) }}</td>
+                <td class="align-right">{{ tier1_ratio }}%</td>
+            </tr>
+            <tr>
+                <td>Tier 2 Capital</td>
+                <td class="align-right">{{ "{:,.0f}".format(tier2_capital) }}</td>
+                <td class="align-right">—</td>
+            </tr>
+            <tr>
+                <td>Total Regulatory Capital</td>
+                <td class="align-right">{{ "{:,.0f}".format(total_capital) }}</td>
+                <td class="align-right">{{ total_car }}%</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>B. Risk-Weighted Assets</h2>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th class="align-right">Amount (₦'000)</th>
+                <th class="align-right">% of Total</th>
+            </tr>
+            <tr>
+                <td>Credit Risk RWA</td>
+                <td class="align-right">{{ "{:,.0f}".format(credit_rwa) }}</td>
+                <td class="align-right">{{ "{:.1f}".format(credit_rwa / total_rwa * 100) }}%</td>
+            </tr>
+            <tr>
+                <td>Market Risk RWA</td>
+                <td class="align-right">{{ "{:,.0f}".format(market_rwa) }}</td>
+                <td class="align-right">{{ "{:.1f}".format(market_rwa / total_rwa * 100) }}%</td>
+            </tr>
+            <tr>
+                <td>Operational Risk RWA</td>
+                <td class="align-right">{{ "{:,.0f}".format(operational_rwa) }}</td>
+                <td class="align-right">{{ "{:.1f}".format(operational_rwa / total_rwa * 100) }}%</td>
+            </tr>
+            <tr>
+                <td>Total RWA</td>
+                <td class="align-right">{{ "{:,.0f}".format(total_rwa) }}</td>
+                <td class="align-right">100.0%</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>C. CBN Compliance Status</h2>
+        <table>
+            <tr>
+                <th>Ratio</th>
+                <th class="align-right">Actual</th>
+                <th class="align-right">CBN Minimum</th>
+                <th class="align-right">Status</th>
+            </tr>
+            <tr>
+                <td>CET1 Ratio</td>
+                <td class="align-right">{{ cet1_ratio }}%</td>
+                <td class="align-right">5.00%</td>
+                <td class="align-right {% if cet1_ratio >= 5.0 %}compliant{% else %}breach{% endif %}">
+                    {% if cet1_ratio >= 5.0 %}✓ Compliant{% else %}✗ BREACH{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Tier 1 Ratio</td>
+                <td class="align-right">{{ tier1_ratio }}%</td>
+                <td class="align-right">6.50%</td>
+                <td class="align-right {% if tier1_ratio >= 6.5 %}compliant{% else %}breach{% endif %}">
+                    {% if tier1_ratio >= 6.5 %}✓ Compliant{% else %}✗ BREACH{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Total CAR</td>
+                <td class="align-right">{{ total_car }}%</td>
+                <td class="align-right">10.00%</td>
+                <td class="align-right {% if total_car >= 10.0 %}compliant{% else %}breach{% endif %}">
+                    {% if total_car >= 10.0 %}✓ Compliant{% else %}✗ BREACH{% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer">
+        Generated by <a href="https://github.com/JimiR3d/regulatory-report-generator">Regulatory Report Generator</a>
+        &bull; For official submissions, verify against CBN Form CAR 001.
+    </div>
+</body>
+</html>
